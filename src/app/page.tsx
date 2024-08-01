@@ -1,94 +1,111 @@
+"use client"
+
 import Image from "next/image";
+import { useState, useEffect } from 'react'
 import styles from "./page.module.css";
+import { Grid, TextField, Button } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { collection, doc, addDoc, deleteDoc, query, onSnapshot } from "firebase/firestore"; 
+import { db } from './firebase'
+
+interface PantryItem {
+  id: string,
+  name: string,
+  quantity: number
+}
 
 export default function Home() {
+  const [items, setItems] = useState<PantryItem[]>([
+    // { name: "Cookies", quantity: 10 },
+    // { name: "Lays Potato Chips", quantity: 1 },
+    // { name: "Plastic Cups", quantity: 25 }
+  ])
+
+  const [nameInput, setNameInput] = useState<string>("");
+  const [quantityInput, setQuantityInput] = useState<string>("");
+
+  // Add items to database
+
+  const addItem = async(e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    if (quantityInput !== '' && nameInput !== '') {
+      if (!isNaN(+quantityInput)) {
+        //setItems([...items, {name: nameInput, quantity: +quantityInput}])
+        await addDoc(collection(db, 'items'), {
+          name: nameInput.trim(),
+          quantity: +quantityInput
+        })
+        .then(() => {
+          setNameInput('');
+          setQuantityInput('')
+        })
+      }
+    }
+    
+  }
+
+  // Delete items from database
+
+  const deleteItem = async(id: string) => {
+    await deleteDoc(doc(db, "items", id));
+  }
+
+  // Read items from database
+
+  useEffect(() => {
+    const q = query(collection(db, 'items'));
+    onSnapshot(q, (querySnapshot) => {
+      let itemsArr : PantryItem[] = [];
+
+      querySnapshot.forEach((doc) => {
+
+        itemsArr.push({
+            id: doc.id, 
+            // Guaranteed that doc.data() will come in the form name, quantity
+            ...(doc.data() as {name: string, quantity: number}
+          )
+        })
+      })
+      setItems(itemsArr);
+    })
+  }, [])
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+      <h1>Pantry Tracker</h1>
+
+      <div className={styles.pantry}>
+        <div className={styles.pantryHeader}>
+          <Grid container spacing={2}>
+            <Grid item xs={7}>
+              <TextField value={nameInput} onChange={(e) => setNameInput(e.target.value)} fullWidth id="pantry-name" label="Item" variant="filled"/>
+            </Grid>
+            <Grid item xs={3}>
+              <TextField value={quantityInput} onChange={(e) => setQuantityInput(e.target.value)} fullWidth id="pantry-quantity" label="Quantity" variant="filled"/>
+            </Grid>
+            <Grid container item xs={2}>
+              <Button fullWidth variant="contained" onClick={addItem}>Add</Button>
+            </Grid>
+          </Grid>
         </div>
-      </div>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+        <div className={styles.pantryBody}>
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+        {
+          items.map(item => (
+            <Grid key={item.id} className={styles.pantryElement} container spacing={2}>
+              <Grid container item xs={11}>
+                <p className={styles.pantryTest}>{item.name} ({item.quantity}x)</p>
+              </Grid>
+              <Grid container item xs={1}>
+                <Button onClick={() => deleteItem(item.id)} fullWidth variant="contained"><DeleteIcon/></Button>
+              </Grid>
+            </Grid>
+          ))
+        }
+        </div>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
       </div>
     </main>
   );

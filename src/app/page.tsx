@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import styles from "./page.module.css";
 import { Grid, TextField, Button } from '@mui/material';
 import { collection, doc, addDoc, deleteDoc, query, onSnapshot } from "firebase/firestore"; 
+import DeleteIcon from "@mui/icons-material/Delete"
 import { db } from './firebase'
 
 interface PantryItem {
@@ -101,7 +102,7 @@ export default function Home() {
                   <p className={styles.pantryTest}>{item.name} ({item.quantity}x)</p>
                 </Grid>
                 <Grid container item xs={1}>
-                  <Button onClick={() => deleteItem(item.id)} fullWidth variant="contained"></Button>
+                  <Button onClick={() => deleteItem(item.id)} fullWidth variant="contained"><DeleteIcon/></Button>
                 </Grid>
               </Grid>
 

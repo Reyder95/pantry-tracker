@@ -1,10 +1,9 @@
 "use client"
 
-import Image from "next/image";
+import { NoSsr } from "@mui/base"
 import { useState, useEffect } from 'react'
 import styles from "./page.module.css";
 import { Grid, TextField, Button } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { collection, doc, addDoc, deleteDoc, query, onSnapshot } from "firebase/firestore"; 
 import { db } from './firebase'
 
@@ -77,31 +76,36 @@ export default function Home() {
 
       <div className={styles.pantry}>
         <div className={styles.pantryHeader}>
-          <Grid container spacing={2}>
-            <Grid item xs={7}>
-              <TextField value={nameInput} onChange={(e) => setNameInput(e.target.value)} fullWidth id="pantry-name" label="Item" variant="filled"/>
+          <NoSsr>
+            <Grid container spacing={2}>
+              <Grid item xs={7}>
+                <TextField value={nameInput} onChange={(e) => setNameInput(e.target.value)} fullWidth id="pantry-name" label="Item" variant="filled"/>
+              </Grid>
+              <Grid item xs={3}>
+                <TextField value={quantityInput} onChange={(e) => setQuantityInput(e.target.value)} fullWidth id="pantry-quantity" label="Quantity" variant="filled"/>
+              </Grid>
+              <Grid container item xs={2}>
+                <Button fullWidth variant="contained" onClick={addItem}>Add</Button>
+              </Grid>
             </Grid>
-            <Grid item xs={3}>
-              <TextField value={quantityInput} onChange={(e) => setQuantityInput(e.target.value)} fullWidth id="pantry-quantity" label="Quantity" variant="filled"/>
-            </Grid>
-            <Grid container item xs={2}>
-              <Button fullWidth variant="contained" onClick={addItem}>Add</Button>
-            </Grid>
-          </Grid>
+          </NoSsr>
+
         </div>
 
         <div className={styles.pantryBody}>
-
+        
         {
           items.map(item => (
-            <Grid key={item.id} className={styles.pantryElement} container spacing={2}>
-              <Grid container item xs={11}>
-                <p className={styles.pantryTest}>{item.name} ({item.quantity}x)</p>
+              <Grid key={item.id} className={styles.pantryElement} container spacing={2}>
+                <Grid container item xs={11}>
+                  <p className={styles.pantryTest}>{item.name} ({item.quantity}x)</p>
+                </Grid>
+                <Grid container item xs={1}>
+                  <Button onClick={() => deleteItem(item.id)} fullWidth variant="contained"></Button>
+                </Grid>
               </Grid>
-              <Grid container item xs={1}>
-                <Button onClick={() => deleteItem(item.id)} fullWidth variant="contained"><DeleteIcon/></Button>
-              </Grid>
-            </Grid>
+
+
           ))
         }
         </div>
